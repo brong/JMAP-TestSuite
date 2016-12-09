@@ -27,6 +27,7 @@ $server->simple_test(sub {
   ok( $batch->is_entirely_successful, "batch succeeded fully");
   ok(my $x = $batch->result_for('x'), 'got x mailbox');
   ok( my $id = $x->id, 'got x mailbox id') or diag explain $x;
+  my $mailboxid = $x->id;
 
   my $time = time;
 
@@ -73,7 +74,7 @@ EOF
         '1' => {
           'blobId'     => $blob_id,
           'mailboxIds' => [
-            'ae6e77fe-3197-444a-8e1f-f8e8d47b41b2'
+            $mailboxid,
           ],
           'isFlagged'  => \0,
           'isAnswered' => \0,
