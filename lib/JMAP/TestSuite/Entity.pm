@@ -9,7 +9,7 @@ package JMAP::TestSuite::Entity {
     required => 1,
   );
 
-  parameter plural_noun => (
+  parameter singular_noun => (
     is => 'ro',
     required => 1,
   );
@@ -19,11 +19,11 @@ package JMAP::TestSuite::Entity {
 
     with 'JMAP::TestSuite::EntityRole::Common';
 
-    my $noun = $param->plural_noun;
-    method get_method => sub { "get\u$noun" };
-    method get_result => sub { "$noun" };
-    method set_method => sub { "set\u$noun" };
-    method set_result => sub { "${noun}Set" };
+    my $noun = $param->singular_noun;
+    method get_method => sub { "\u$noun/get" };
+    method get_result => sub { "\u$noun/get" };
+    method set_method => sub { "\u$noun/set" };
+    method set_result => sub { "\u$noun/set" };
 
     for my $property (@{ $param->properties }) {
       method $property => sub {
@@ -64,10 +64,10 @@ package JMAP::TestSuite::EntityRole::Common {
 
   sub is_error { 0 }
 
-  has context => (
+  has account => (
     is => 'ro',
     required => 1,
-    handles  => [ qw(account accountId tester clear_tester) ],
+    handles  => [ qw(accountId tester clear_tester) ],
   );
 
   no Moose::Role;
@@ -85,8 +85,8 @@ package JMAP::TestSuite::EntityRole::Common {
     # have both an account and accountId, with the account only implying the
     # accountId *by default*. -- rjbs, 2016-11-15
 
-    my $context = $extra->{context}
-               || (blessed $pkg ? $pkg->tester  : die 'no context');
+    my $account = $extra->{account}
+               || (blessed $pkg ? $pkg->tester  : die 'no account');
 
     my $set_method = $pkg->set_method;
     my $set_expect = $pkg->set_result;
@@ -95,9 +95,9 @@ package JMAP::TestSuite::EntityRole::Common {
       map {; $_ => $pkg->create_args($to_create->{$_}) } keys %$to_create
     };
 
-    my $set_res = $context->tester->request([
-      [ $set_method => { create => $to_create } ]
-    ]);
+    my $set_res = $account->tester->request([[
+      $set_method => { create => $to_create },
+    ]]);
 
     my $set_sentence = $set_res->single_sentence($set_expect)->as_set;
 
@@ -122,11 +122,9 @@ package JMAP::TestSuite::EntityRole::Common {
     my $get_method = $pkg->get_method;
     my $get_expect = $pkg->get_result;
 
-    my $get_res = $context->tester->request([
-      [
-        $get_method => { ids => [ $set_sentence->created_ids ] },
-      ],
-    ]);
+    my $get_res = $account->tester->request([[
+      $get_method => { ids => [ $set_sentence->created_ids ] },
+    ]]);
 
     my $get_res_arg = $get_res->single_sentence($get_expect)
                               ->as_stripped_pair->[1];
@@ -143,7 +141,7 @@ package JMAP::TestSuite::EntityRole::Common {
     for my $item (@{ $get_res_arg->{list} }) {
       $result{ $crid_for{ $item->{id} } } = $pkg->new({
         _props  => $item,
-        context => $context,
+        account => $account,
       });
     }
 
@@ -168,21 +166,18 @@ package JMAP::TestSuite::EntityRole::Common {
   sub _retrieve_batch {
     my ($pkg, $ids, $extra) = @_;
 
-    my $context = $extra->{context}
-               || (blessed $pkg ? $pkg->tester  : die 'no context');
+    my $account = $extra->{account}
+               || (blessed $pkg ? $pkg->tester  : die 'no account');
 
     my $get_method = $pkg->get_method;
     my $get_expect = $pkg->get_result;
 
-    my $get_res = $context->tester->request([
-      [
-        $get_method => { ids => [ @$ids ] },
-      ],
-    ]);
+    my $get_res = $account->tester->request([[
+      $get_method => { ids => [ @$ids ] },
+    ]]);
 
     my $get_res_arg = $get_res->single_sentence($get_expect)
                               ->as_stripped_pair->[1];
-
     my %result;
     for my $nf_id (@{ $get_res_arg->{notFound} // [] }) {
       $result{$nf_id} = JMAP::TestSuite::EntityError->new({
@@ -193,7 +188,7 @@ package JMAP::TestSuite::EntityRole::Common {
     for my $item (@{ $get_res_arg->{list} }) {
       $result{ $item->{id} } = $pkg->new({
         _props  => $item,
-        context => $context,
+        account => $account,
       });
     }
 
@@ -208,8 +203,110 @@ package JMAP::TestSuite::EntityRole::Common {
 
   sub retrieve { ... }
 
-}
+  sub get_state {
+    my ($pkg, $extra) = @_;
 
+    my $account = $extra->{account}
+               || (blessed $pkg ? $pkg->tester  : die 'no account');
+
+    my $get_method = $pkg->get_method;
+    my $get_expect = $pkg->get_result;
+
+    my $get_res = $account->tester->request([[
+      $get_method => { ids => [], },
+    ]]);
+
+    my $get_res_arg = $get_res->single_sentence($get_expect)
+                              ->as_stripped_pair->[1];
+
+    unless (exists $get_res_arg->{state}) {
+      die "No state found for $get_expect\n";
+    }
+
+    return $get_res_arg->{state};
+  }
+
+  sub destroy {
+    my ($self) = @_;
+
+    my $set_method = $self->set_method;
+    my $set_expect = $self->set_result;
+
+    my $set_res = $self->tester->request([[
+      $set_method => {
+        destroy => [ $self->id ],
+      },
+    ]]);
+
+    my $set_res_arg = $set_res->single_sentence($set_expect)->arguments;
+    unless (
+         $set_res_arg->{destroyed}
+      && $set_res_arg->{destroyed}[0] eq $self->id
+    ) {
+      require Data::Dumper;
+      Carp::confess(
+          "failed to destroy test entity: "
+        . Data::Dumper::Dumper($set_res->as_stripped_triples)
+      );
+    }
+
+    return;
+  }
+
+  sub update {
+    my ($self, $updates) = @_;
+
+    my $set_method = $self->set_method;
+    my $set_expect = $self->set_result;
+
+    my $set_res = $self->tester->request([[
+      $set_method => {
+        update => {
+          $self->id => $updates,
+        },
+      },
+    ]]);
+
+    my $set_res_arg = $set_res->single_sentence($set_expect)->arguments;
+    unless (
+         $set_res_arg->{updated}
+      && exists $set_res_arg->{updated}{$self->id}
+    ) {
+      require Data::Dumper;
+      Carp::confess(
+          "failed to update test entity: "
+        . Data::Dumper::Dumper($set_res->as_stripped_triples)
+      );
+    }
+
+    $self->refresh;
+
+    return;
+  }
+
+  sub refresh {
+    my ($self) = @_;
+
+    my $get_method = $self->get_method;
+    my $get_expect = $self->get_result;
+
+    my $get_res = $self->tester->request([[
+      $get_method => { ids => [ $self->id ] },
+    ]]);
+
+    my $get_res_arg = $get_res->single_sentence($get_expect)
+                              ->as_stripped_pair->[1];
+
+    my $updates = $get_res_arg->{list}[0];
+    unless ($updates) {
+      Carp::confess(
+          "failed to refresh $self (" . $self->id . "): "
+        . Dumper($get_res_arg)
+      );
+    }
+    $self->{_props} = $updates;
+  }
+}
 
 # retrieve
 # retrieve_batch
@@ -220,7 +317,6 @@ package JMAP::TestSuite::EntityRole::Common {
 #
 # accessors
 # accountId
-# refresh
 
 package JMAP::TestSuite::EntityError {
   use Moose;

@@ -8,7 +8,8 @@ use Module::Runtime qw(require_module);
 use Path::Tiny;
 
 use JMAP::TestSuite::Entity::Mailbox;
-use JMAP::TestSuite::Entity::Message;
+use JMAP::TestSuite::Entity::Email;
+use JMAP::TestSuite::Entity::Thread;
 
 sub get_server {
   my $fn = $ENV{JMAP_SERVER_ADAPTER_FILE};

@@ -35,17 +35,22 @@ package JMAP::TestSuite::Account::JMAPProxy {
   use Moose;
   with 'JMAP::TestSuite::Account';
 
-  use JMAP::Tester;
+  use JMAP::TestSuite::JMAP::Tester::WithSugar;
 
   has api_uri      => (is => 'ro');
   has download_uri => (is => 'ro');
   has upload_uri   => (is => 'ro');
 
   sub authenticated_tester {
-    my $tester = JMAP::Tester->new({
+    my $tester = JMAP::TestSuite::JMAP::Tester::WithSugar->new({
       api_uri     => $_[0]->api_uri,
       upload_uri  => $_[0]->upload_uri,
     });
+
+    $tester->ua->lwp->ssl_opts(verify_hostname => 0);
+    $tester->ua->lwp->ssl_opts(SSL_verify_mode => 0x00);
+
+    $tester;
   }
 
   no Moose;
