@@ -4,8 +4,13 @@ package JMAP::TestSuite::Util;
 
 use Sub::Exporter -setup => [ qw(
   batch_ok
+  capability_check
   email
   mailbox
+  calendar
+  calendar_event
+  address_book
+  contact_card
   thread
   get_parts multipart part parts cmultipart cpart
 ) ];
@@ -17,6 +22,39 @@ use Test::More;
 use JMAP::TestSuite::Comparator::Email qw(email);
 use JMAP::TestSuite::Comparator::Mailbox qw(mailbox);
 use JMAP::TestSuite::Comparator::Thread qw(thread);
+use JMAP::TestSuite::Comparator::Calendar qw(calendar);
+use JMAP::TestSuite::Comparator::CalendarEvent qw(calendar_event);
+use JMAP::TestSuite::Comparator::AddressBook qw(address_book);
+use JMAP::TestSuite::Comparator::ContactCard qw(contact_card);
+
+=head1 FUNCTIONS
+
+=head2 capability_check
+
+  capability_check($tester, @caps) or return;
+
+Skips the whole test file unless the server advertises every capability in
+C<@caps>, then narrows the tester's C<default_using> to exactly C<@caps>, so
+the test sends only what it declared.  Returns C<@caps>, or an empty list
+after planning the skip.
+
+=cut
+
+sub capability_check {
+  my ($tester, @caps) = @_;
+
+  my %server_caps = map { $_ => 1 } @{ $tester->default_using // [] };
+
+  for my $cap (@caps) {
+    unless ($server_caps{$cap}) {
+      Test::More::plan(skip_all => "server does not support $cap");
+      return ();
+    }
+  }
+
+  $tester->default_using(\@caps);
+  return @caps;
+}
 
 sub batch_ok {
   my ($batch) = @_;
