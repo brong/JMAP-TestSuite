@@ -6,6 +6,10 @@ test {
   my $account = $self->any_account;
   my $tester  = $account->tester;
 
+  capability_check($tester,
+    'urn:ietf:params:jmap:core',
+  ) or return;
+
   # First, grab our uploadUrl
   my $res = $tester->ua->lwp->get($tester->api_uri);
   ok($res->is_success, "GET " . $tester->api_uri);

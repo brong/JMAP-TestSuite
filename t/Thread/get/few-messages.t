@@ -8,6 +8,11 @@ test {
   my $account = $self->any_account;
   my $tester  = $account->tester;
 
+  capability_check($tester,
+    'urn:ietf:params:jmap:core',
+    'urn:ietf:params:jmap:mail',
+  ) or return;
+
   my $mailbox1 = $account->create_mailbox;
 
   my $message1 = $mailbox1->add_message;

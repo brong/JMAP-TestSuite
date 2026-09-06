@@ -9,6 +9,11 @@ test {
   my $account = $self->any_account;
   my $tester  = $account->tester;
 
+  capability_check($tester,
+    'urn:ietf:params:jmap:core',
+    'urn:ietf:params:jmap:mail',
+  ) or return;
+
   my $mbox = $account->create_mailbox;
 
   subtest "image/audio/video in text only, attached" => sub {
