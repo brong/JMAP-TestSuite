@@ -47,13 +47,20 @@ test {
       'text body is correct'
     ) or diag explain $email;
 
-    my $preview = substr $text_body, 0, 5;
+    # RFC 8621 S4.1 constrains "preview" only by "MUST NOT be more than 256
+    # characters"; the server "may choose which part of the message to
+    # include", and may collapse whitespace or skip salutations. So the shape
+    # is asserted, not the content -- requiring it to start at the beginning
+    # of the body would fail a server exercising the latitude it is given.
+    ok(defined $email->{preview}, 'preview is present');
+    cmp_ok(length($email->{preview} // ''), '<=', 256, 'preview is not over-long');
 
-    like(
-      $email->{preview},
-      qr/^$preview/i,
-      'preview looks good'
-    );
+    if (length($email->{preview} // '')) {
+      note("preview: $email->{preview}");
+    }
+    else {
+      note('server returned an empty preview for a message with a text body');
+    }
   };
 
   subtest "getMessageList" => sub {
@@ -87,12 +94,19 @@ test {
       'text body is correct'
     );
 
-    my $preview = substr $text_body, 0, 5;
+    # RFC 8621 S4.1 constrains "preview" only by "MUST NOT be more than 256
+    # characters"; the server "may choose which part of the message to
+    # include", and may collapse whitespace or skip salutations. So the shape
+    # is asserted, not the content -- requiring it to start at the beginning
+    # of the body would fail a server exercising the latitude it is given.
+    ok(defined $email->{preview}, 'preview is present');
+    cmp_ok(length($email->{preview} // ''), '<=', 256, 'preview is not over-long');
 
-    like(
-      $email->{preview},
-      qr/^$preview/i,
-      'preview looks good'
-    );
+    if (length($email->{preview} // '')) {
+      note("preview: $email->{preview}");
+    }
+    else {
+      note('server returned an empty preview for a message with a text body');
+    }
   };
 };
