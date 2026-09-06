@@ -5,6 +5,12 @@ test {
 
   my $account = $self->any_account;
   my $tester  = $account->tester;
+
+  capability_check($tester,
+    'urn:ietf:params:jmap:core',
+    'urn:ietf:params:jmap:mail',
+  ) or return;
+
   my $res = $tester->request([[ "Mailbox/get" => {} ]]);
   my $pairs = $res->as_triples;
 

@@ -9,6 +9,11 @@ test {
   my $account = $self->pristine_account;
   my $tester  = $account->tester;
 
+  capability_check($tester,
+    'urn:ietf:params:jmap:core',
+    'urn:ietf:params:jmap:mail',
+  ) or return;
+
   subtest "No arguments" => sub {
     my $res = $tester->request([[
       "Mailbox/get" => {},

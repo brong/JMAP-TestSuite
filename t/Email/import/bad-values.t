@@ -6,6 +6,11 @@ test {
   my $account = $self->any_account;
   my $tester  = $account->tester;
 
+  capability_check($tester,
+    'urn:ietf:params:jmap:core',
+    'urn:ietf:params:jmap:mail',
+  ) or return;
+
   subtest "emails -> wrong form" => sub {
     for my $bad (undef, "none", ["foo"]) {
       my $res = $tester->request([[
