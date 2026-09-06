@@ -4,8 +4,13 @@ package JMAP::TestSuite::Util;
 
 use Sub::Exporter -setup => [ qw(
   batch_ok
+  capability_check
   email
   mailbox
+  calendar
+  calendar_event
+  address_book
+  contact_card
   thread
   get_parts multipart part parts cmultipart cpart
 ) ];
@@ -17,6 +22,29 @@ use Test::More;
 use JMAP::TestSuite::Comparator::Email qw(email);
 use JMAP::TestSuite::Comparator::Mailbox qw(mailbox);
 use JMAP::TestSuite::Comparator::Thread qw(thread);
+use JMAP::TestSuite::Comparator::Calendar qw(calendar);
+use JMAP::TestSuite::Comparator::CalendarEvent qw(calendar_event);
+use JMAP::TestSuite::Comparator::AddressBook qw(address_book);
+use JMAP::TestSuite::Comparator::ContactCard qw(contact_card);
+
+# Check that $tester supports all @caps; skip the test if any are missing.
+# On success, restricts default_using to exactly @caps so the test only
+# sends what it needs.  Returns @caps (truthy) on success, () (falsy) on skip.
+sub capability_check {
+  my ($tester, @caps) = @_;
+
+  my %server_caps = map { $_ => 1 } @{ $tester->default_using // [] };
+
+  for my $cap (@caps) {
+    unless ($server_caps{$cap}) {
+      Test::More::plan(skip_all => "server does not support $cap");
+      return ();
+    }
+  }
+
+  $tester->default_using(\@caps);
+  return @caps;
+}
 
 sub batch_ok {
   my ($batch) = @_;

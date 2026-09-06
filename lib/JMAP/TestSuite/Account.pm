@@ -165,7 +165,7 @@ package JMAP::TestSuite::Account {
     *$method = $code;
   }
 
-  my $inc = 0;
+  my $mb_inc = 0;
 
   sub create_mailbox {
     # XXX - This should probably not use Test::* functions and
@@ -175,8 +175,8 @@ package JMAP::TestSuite::Account {
     my ($self, $arg) = @_;
 
     $arg ||= {};
-    $arg->{name} ||= "Folder $inc at $^T.$$";
-    $inc++;
+    $arg->{name} ||= "Folder $mb_inc at $^T.$$";
+    $mb_inc++;
 
     my $batch = $self->create_batch(mailbox => {
       x => $arg,
@@ -215,6 +215,127 @@ package JMAP::TestSuite::Account {
       $to_pass,
       { ($to_munge ? %$to_munge : ()), account => $self },
     );
+  }
+
+  my $cal_inc = 0;
+
+  sub create_calendar {
+    # XXX - This should probably not use Test::* functions and
+    #       instead hard fail if something goes wrong.
+    local $Test::Builder::Level = $Test::Builder::Level + 1;
+
+    my ($self, $arg) = @_;
+
+    $arg ||= {};
+    $arg->{name} ||= "Calendar $cal_inc at $^T.$$";
+    $arg->{color} ||= '#ffffff';
+    $cal_inc++;
+
+    my $batch = $self->create_batch(calendar => {
+      x => $arg,
+    });
+
+    batch_ok($batch);
+
+    ok($batch->is_entirely_successful, "created a calendar")
+      or diag explain $batch->all_results;
+
+    my $x = $batch->result_for('x');
+
+    if ($ENV{JMTS_TELEMETRY}) {
+      note(
+          "Account " . $self->accountId
+        . " Created calendar '" . $x->name . "' id (" . $x->id . ")"
+      );
+    }
+
+    return $x;
+  }
+
+  my $event_inc = 0;
+
+  sub create_calendar_event {
+    local $Test::Builder::Level = $Test::Builder::Level + 1;
+
+    my ($self, $arg) = @_;
+
+    $arg ||= {};
+
+    my $calendar = delete($arg->{calendar}) // $self->create_calendar;
+
+    $arg->{calendarIds} ||= { $calendar->id => \1 };
+    $arg->{title}       ||= "Event $event_inc at $^T.$$";
+    $arg->{start}       ||= '2024-01-15T09:00:00';
+    $arg->{timeZone}    ||= 'Etc/UTC';
+    $arg->{duration}    ||= 'PT1H';
+    $arg->{showWithoutTime} //= \0;
+    # draft-ietf-calext-jscalendarbis S3.1.2: "an Event or Task object that is
+    # represented without an enclosing Group object MUST set the 'version'
+    # property". A JMAP CalendarEvent is exactly that, and jmap-calendars does
+    # not exempt it, so a server on JSCalendar 2.0 rejects an event without one.
+    # (Under version "1.0" the property was optional, which is why older
+    # servers accept events that omit it.)
+    $arg->{version}     ||= '2.0';
+    $event_inc++;
+
+    my $batch = $self->create_batch(calendarEvent => {
+      x => $arg,
+    });
+
+    batch_ok($batch);
+
+    ok($batch->is_entirely_successful, "created a calendar event")
+      or diag explain $batch->all_results;
+
+    return $batch->result_for('x');
+  }
+
+  my $ab_inc = 0;
+
+  sub create_address_book {
+    local $Test::Builder::Level = $Test::Builder::Level + 1;
+
+    my ($self, $arg) = @_;
+
+    $arg ||= {};
+    $arg->{name} ||= "AddressBook $ab_inc at $^T.$$";
+    $ab_inc++;
+
+    my $batch = $self->create_batch(addressBook => {
+      x => $arg,
+    });
+
+    batch_ok($batch);
+
+    ok($batch->is_entirely_successful, "created an address book")
+      or diag explain $batch->all_results;
+
+    return $batch->result_for('x');
+  }
+
+  my $card_inc = 0;
+
+  sub create_contact_card {
+    local $Test::Builder::Level = $Test::Builder::Level + 1;
+
+    my ($self, $arg) = @_;
+
+    $arg ||= {};
+    $arg->{'@type'}  ||= 'Card';
+    $arg->{version}  ||= '1.0';
+    $arg->{name}     ||= { full => "Test Contact $card_inc" };
+    $card_inc++;
+
+    my $batch = $self->create_batch(contactCard => {
+      x => $arg,
+    });
+
+    batch_ok($batch);
+
+    ok($batch->is_entirely_successful, "created a contact card")
+      or diag explain $batch->all_results;
+
+    return $batch->result_for('x');
   }
 
   no Moose::Role;
