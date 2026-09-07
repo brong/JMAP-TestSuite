@@ -21,6 +21,15 @@ sub BUILD {
   }
 }
 
+# RFC 8620 §2 requires downloadUrl to carry a {type} variable, but JMAP::Tester
+# has no default for it and dies when a test does not name one. Default it.
+around download_uri_for => sub {
+  my ($orig, $self, $arg) = @_;
+  my %arg = %{ $arg || {} };
+  $arg{type} //= 'application/octet-stream';
+  return $self->$orig(\%arg);
+};
+
 sub request_ok {
   my ($self, $input_request, $expect_paragraphs, $desc) = @_;
 

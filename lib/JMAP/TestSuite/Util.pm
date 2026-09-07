@@ -5,6 +5,8 @@ package JMAP::TestSuite::Util;
 use Sub::Exporter -setup => [ qw(
   batch_ok
   capability_check
+  fetch_session
+  foreign_account_ok
   email
   mailbox
   calendar
@@ -18,6 +20,7 @@ use Sub::Exporter -setup => [ qw(
 use Test::Deep ':v1';
 use Test::Deep::JType;
 use Test::More;
+use JSON ();
 
 use JMAP::TestSuite::Comparator::Email qw(email);
 use JMAP::TestSuite::Comparator::Mailbox qw(mailbox);
@@ -44,6 +47,85 @@ sub capability_check {
 
   $tester->default_using(\@caps);
   return @caps;
+}
+
+# GET the session resource (RFC 8620 §2) through $tester and return it decoded.
+# The tester's authentication_uri is the session URL when the adapter gave one;
+# otherwise the API URL is assumed to serve the session on GET, as Cyrus does.
+# The API URL and the session URL are NOT required to coincide, so tests must
+# not GET api_uri and call it the session.
+sub fetch_session {
+  my ($tester) = @_;
+
+  local $Test::Builder::Level = $Test::Builder::Level + 1;
+
+  my $uri = $tester->has_authentication_uri
+          ? $tester->authentication_uri
+          : $tester->api_uri;
+  my $res = $tester->ua->lwp->get($uri, $tester->_maybe_auth_header);
+  ok($res->is_success, "GET $uri (session resource)")
+    or diag($res->status_line);
+
+  my $data = eval { JSON->new->decode($res->decoded_content) };
+  ok($data, 'session resource is JSON')
+    or diag("Invalid json?: " . $res->decoded_content);
+
+  return $data;
+}
+
+# Every call in @$calls, made as $account but naming $other's accountId, must
+# fail with accountNotFound (RFC 8620 §3.6.2). $other is an account that exists
+# on the server but is not in $account's session: the error must be the same one
+# a nonexistent id gets, so a client cannot probe for accounts it cannot see.
+#
+# Each call is [ $method, \%args ]. An "accountId" in %args is replaced; for a
+# /copy method the caller sets whichever of fromAccountId/accountId should be
+# foreign to the string 'OTHER' and the rest to 'SELF'.
+sub foreign_account_ok {
+  my ($account, $other, $calls) = @_;
+
+  local $Test::Builder::Level = $Test::Builder::Level + 1;
+
+  my $tester  = $account->tester;
+  my $foreign = $other->accountId;
+  my $mine    = $account->accountId;
+
+  isnt($foreign, $mine, "the other account ($foreign) is not this one ($mine)")
+    or return;
+
+  # If the tester knows its session's accounts, make sure the target really is
+  # outside it -- otherwise this test would prove nothing.
+  my %visible = $tester->accounts;
+  if (%visible) {
+    ok(!$visible{$foreign}, "account $foreign is not in this session") or return;
+  }
+
+  for my $call (@$calls) {
+    my ($method, $args) = @$call;
+    my %args = %{ $args || {} };
+    for my $k (qw(accountId fromAccountId)) {
+      next unless exists $args{$k};
+      $args{$k} = $foreign if $args{$k} eq 'OTHER';
+      $args{$k} = $mine    if $args{$k} eq 'SELF';
+    }
+    $args{accountId} = $foreign unless exists $args{accountId};
+
+    my $desc = join ' ', $method, map { "$_=" . ($args{$_} eq $foreign ? 'OTHER' : 'SELF') }
+                 grep { exists $args{$_} } qw(fromAccountId accountId);
+
+    my $res = $tester->request([[ $method => \%args ]]);
+    ok($res->is_success, "$desc: request completed")
+      or diag(explain($res->response_payload)), next;
+
+    my $s = $res->sentence(0);
+    is($s->name, 'error', "$desc: is an error")
+      or diag explain $res->as_stripped_triples;
+    jcmp_deeply(
+      $s->arguments,
+      superhashof({ type => 'accountNotFound' }),
+      "$desc: accountNotFound",
+    ) or diag explain $res->as_stripped_triples;
+  }
 }
 
 sub batch_ok {

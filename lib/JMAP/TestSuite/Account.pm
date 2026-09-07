@@ -13,11 +13,23 @@ package JMAP::TestSuite::Account {
 
   requires 'authenticated_tester';
 
+  # Every standard method except Core/echo requires an accountId (RFC 8620), so
+  # the tester supplies this account's id on every call unless the test gives
+  # one itself. A test that wants to omit it deliberately passes
+  # accountId => \undef (see JMAP::Tester's default_arguments).
   has tester  => (
     is   => 'ro',
     does  => 'JMAP::TestSuite::JMAP::Tester::WithSugarRole',
     lazy => 1,
-    default => sub { $_[0]->authenticated_tester },
+    default => sub {
+      my ($self) = @_;
+      my $tester = $self->authenticated_tester;
+      $tester->default_arguments({
+        %{ $tester->default_arguments },
+        accountId => $self->accountId,
+      });
+      return $tester;
+    },
     clearer => 'clear_tester',
   );
 
