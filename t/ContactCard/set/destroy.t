@@ -6,10 +6,10 @@ test {
   my $account = $self->any_account;
   my $tester  = $account->tester;
 
-  capability_check($tester,
+  $tester->require_capabilities(
     'urn:ietf:params:jmap:core',
     'urn:ietf:params:jmap:contacts',
-  ) or return;
+  );
 
   my $card = $account->create_contact_card;
   ok($card->id, 'created contact card');

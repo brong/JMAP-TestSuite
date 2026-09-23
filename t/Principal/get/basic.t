@@ -6,10 +6,10 @@ test {
   my $account = $self->any_account;
   my $tester  = $account->tester;
 
-  capability_check($tester,
+  $tester->require_capabilities(
     'urn:ietf:params:jmap:core',
     'urn:ietf:params:jmap:principals',
-  ) or return;
+  );
 
   # RFC 8620 S5.1 lets a server answer requestTooLarge to a null "ids" once
   # there are more records than maxObjectsInGet (Cyrus has a principal per

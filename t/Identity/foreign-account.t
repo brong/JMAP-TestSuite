@@ -11,10 +11,10 @@ test {
   my $account = $self->any_account;
   my $other   = $self->pristine_account;
 
-  capability_check($account->tester,
+  $account->tester->require_capabilities(
     'urn:ietf:params:jmap:core',
     'urn:ietf:params:jmap:submission',
-  ) or return;
+  );
 
   foreign_account_ok($account, $other, [
     [ 'Identity/get'     => { ids => [] } ],

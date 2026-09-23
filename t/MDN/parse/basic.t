@@ -6,11 +6,11 @@ test {
   my $account = $self->any_account;
   my $tester  = $account->tester;
 
-  capability_check($tester,
+  $tester->require_capabilities(
     'urn:ietf:params:jmap:core',
     'urn:ietf:params:jmap:mdn',
     'urn:ietf:params:jmap:mail',
-  ) or return;
+  );
 
   # Build a minimal MDN (multipart/report with message/disposition-notification)
   my $mdn_text = join("\r\n",

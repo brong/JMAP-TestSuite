@@ -8,10 +8,10 @@ test {
   my $account = $self->pristine_account;
   my $tester  = $account->tester;
 
-  capability_check($tester,
+  $tester->require_capabilities(
     'urn:ietf:params:jmap:core',
     'urn:ietf:params:jmap:principals',
-  ) or return;
+  );
 
   my $prin_res = $tester->request([[
     "Principal/get" => {},

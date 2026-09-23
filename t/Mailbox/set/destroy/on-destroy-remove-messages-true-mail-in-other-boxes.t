@@ -6,10 +6,10 @@ test {
   my $account = $self->any_account;
   my $tester  = $account->tester;
 
-  capability_check($tester,
+  $tester->require_capabilities(
     'urn:ietf:params:jmap:core',
     'urn:ietf:params:jmap:mail',
-  ) or return;
+  );
 
   # Put our message in two boxes. It should be removed from the first when
   # we destroy the mailbox but exist in the second.

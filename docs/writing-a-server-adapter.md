@@ -190,10 +190,10 @@ skips entirely unless your adapter implements the matching method.
 **Server capability.** Inside a test:
 
 ```perl
-capability_check($tester,
+$tester->require_capabilities(
   'urn:ietf:params:jmap:core',
   'urn:ietf:params:jmap:calendars',
-) or return;
+);
 ```
 
 This compares against the tester's `default_using` list, so **that list must
@@ -206,7 +206,7 @@ my @using = sort keys %{ $session->{capabilities} // {} };
 $tester->default_using(\@using);
 ```
 
-Note that `capability_check` also *replaces* `default_using` with the
+Note that `require_capabilities` also *replaces* `default_using` with the
 capabilities it was given, so each test sends only the ones it needs.
 
 ## Things that will bite you

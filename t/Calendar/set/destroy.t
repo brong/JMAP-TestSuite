@@ -6,10 +6,10 @@ test {
   my $account = $self->any_account;
   my $tester  = $account->tester;
 
-  capability_check($tester,
+  $tester->require_capabilities(
     'urn:ietf:params:jmap:core',
     'urn:ietf:params:jmap:calendars',
-  ) or return;
+  );
 
   subtest "Destroy an empty calendar" => sub {
     my $calendar = $account->create_calendar;

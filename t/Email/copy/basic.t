@@ -10,10 +10,10 @@ test {
   my $from_tester = $from_account->tester;
   my $to_tester   = $to_account->tester;
 
-  capability_check($from_tester,
+  $from_tester->require_capabilities(
     'urn:ietf:params:jmap:core',
     'urn:ietf:params:jmap:mail',
-  ) or return;
+  );
 
   my $src_mbox  = $from_account->create_mailbox;
   my $dest_mbox = $to_account->create_mailbox;

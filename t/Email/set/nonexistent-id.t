@@ -11,10 +11,10 @@ test {
   my $account = $self->pristine_account;
   my $tester  = $account->tester;
 
-  capability_check($tester,
+  $tester->require_capabilities(
     'urn:ietf:params:jmap:core',
     'urn:ietf:params:jmap:mail',
-  ) or return;
+  );
 
   my $missing = 'nosuchemail';
 

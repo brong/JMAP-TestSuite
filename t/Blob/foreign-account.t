@@ -11,9 +11,9 @@ test {
   my $account = $self->any_account;
   my $other   = $self->pristine_account;
 
-  capability_check($account->tester,
+  $account->tester->require_capabilities(
     'urn:ietf:params:jmap:core',
-  ) or return;
+  );
 
   foreign_account_ok($account, $other, [
     [ 'Blob/copy' => { fromAccountId => 'SELF',  accountId => 'OTHER', blobIds => [] } ],

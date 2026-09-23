@@ -6,9 +6,9 @@ test {
   my $account = $self->any_account;
   my $tester  = $account->tester;
 
-  capability_check($tester,
+  $tester->require_capabilities(
     'urn:ietf:params:jmap:core',
-  ) or return;
+  );
 
   # First, grab our downloadUrl from the session resource
   my $data = fetch_session($tester) or return;

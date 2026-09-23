@@ -8,10 +8,10 @@ test {
   my $account = $self->pristine_account;
   my $tester  = $account->tester;
 
-  capability_check($tester,
+  $tester->require_capabilities(
     'urn:ietf:params:jmap:core',
     'urn:ietf:params:jmap:submission',
-  ) or return;
+  );
 
   # RFC 8620 S5.4/S5.5: "queryState" and the object "state" are separate opaque
   # strings, so fetch each from its own method rather than reusing one.

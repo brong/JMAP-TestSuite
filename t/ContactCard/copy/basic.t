@@ -10,10 +10,10 @@ test {
   my $from_tester = $from_account->tester;
   my $to_tester   = $to_account->tester;
 
-  capability_check($from_tester,
+  $from_tester->require_capabilities(
     'urn:ietf:params:jmap:core',
     'urn:ietf:params:jmap:contacts',
-  ) or return;
+  );
 
   # Skip unless the destination is usable for contacts at all: a Cyrus pool
   # pair shares mail, but AddressBook/get on the other account is

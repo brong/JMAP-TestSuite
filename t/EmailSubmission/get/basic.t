@@ -8,11 +8,11 @@ test {
   my $account = $self->pristine_account;
   my $tester  = $account->tester;
 
-  capability_check($tester,
+  $tester->require_capabilities(
     'urn:ietf:params:jmap:core',
     'urn:ietf:params:jmap:mail',
     'urn:ietf:params:jmap:submission',
-  ) or return;
+  );
 
   my $mb_res = $tester->request([[
     "Mailbox/get" => {},

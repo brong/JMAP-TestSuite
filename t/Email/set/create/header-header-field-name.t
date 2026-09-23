@@ -8,10 +8,10 @@ test {
 
   $account = $self->any_account;
   $tester  = $account->tester;
-  capability_check($tester,
+  $tester->require_capabilities(
     'urn:ietf:params:jmap:core',
     'urn:ietf:params:jmap:mail',
-  ) or return;
+  );
 
   subtest "normal cannot provide a list" => sub {
     $self->create_and_check_header(
