@@ -7,6 +7,7 @@ package JMAP::TestSuite::Account {
   use Scalar::Util qw(blessed);
   use Test::More;
   use List::Util qw(pairkeys);
+  use feature qw(state);
 
   has accountId => (is => 'ro', required => 1);
   has server    => (is => 'ro', isa => 'Object', required => 1);
@@ -175,14 +176,13 @@ package JMAP::TestSuite::Account {
     *$method = $code;
   }
 
-  my $mb_inc = 0;
-
   sub create_mailbox {
     # XXX - This should probably not use Test::* functions and
     #       instead hard fail if something goes wrong.
     local $Test::Builder::Level = $Test::Builder::Level + 1;
 
     my ($self, $arg) = @_;
+    state $mb_inc = 0;
 
     $arg ||= {};
     $arg->{name} ||= "Folder $mb_inc at $^T.$$";
@@ -227,14 +227,13 @@ package JMAP::TestSuite::Account {
     );
   }
 
-  my $cal_inc = 0;
-
   sub create_calendar {
     # XXX - This should probably not use Test::* functions and
     #       instead hard fail if something goes wrong.
     local $Test::Builder::Level = $Test::Builder::Level + 1;
 
     my ($self, $arg) = @_;
+    state $cal_inc = 0;
 
     $arg ||= {};
     $arg->{name} ||= "Calendar $cal_inc at $^T.$$";
@@ -262,12 +261,11 @@ package JMAP::TestSuite::Account {
     return $x;
   }
 
-  my $event_inc = 0;
-
   sub create_calendar_event {
     local $Test::Builder::Level = $Test::Builder::Level + 1;
 
     my ($self, $arg) = @_;
+    state $event_inc = 0;
 
     $arg ||= {};
 
@@ -296,12 +294,11 @@ package JMAP::TestSuite::Account {
     return $batch->result_for('x');
   }
 
-  my $ab_inc = 0;
-
   sub create_address_book {
     local $Test::Builder::Level = $Test::Builder::Level + 1;
 
     my ($self, $arg) = @_;
+    state $ab_inc = 0;
 
     $arg ||= {};
     $arg->{name} ||= "AddressBook $ab_inc at $^T.$$";
@@ -319,12 +316,11 @@ package JMAP::TestSuite::Account {
     return $batch->result_for('x');
   }
 
-  my $card_inc = 0;
-
   sub create_contact_card {
     local $Test::Builder::Level = $Test::Builder::Level + 1;
 
     my ($self, $arg) = @_;
+    state $card_inc = 0;
 
     $arg ||= {};
     $arg->{'@type'}  ||= 'Card';
