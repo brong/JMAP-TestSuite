@@ -16,7 +16,7 @@ test {
     'urn:ietf:params:jmap:quota',
   );
 
-  foreign_account_ok($account, $other, [
+  foreign_account_not_found_ok($account, $other, [
     [ 'Quota/get'          => { ids => [] } ],
     [ 'Quota/changes'      => { sinceState => '0' } ],
     [ 'Quota/query'        => {} ],

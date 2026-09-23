@@ -16,7 +16,7 @@ test {
     'urn:ietf:params:jmap:contacts',
   );
 
-  foreign_account_ok($account, $other, [
+  foreign_account_not_found_ok($account, $other, [
     [ 'AddressBook/get'     => { ids => [] } ],
     [ 'AddressBook/changes' => { sinceState => '0' } ],
     [ 'AddressBook/set'     => {} ],

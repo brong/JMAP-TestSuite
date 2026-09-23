@@ -16,7 +16,7 @@ test {
     'urn:ietf:params:jmap:calendars',
   );
 
-  foreign_account_ok($account, $other, [
+  foreign_account_not_found_ok($account, $other, [
     [ 'Calendar/get'     => { ids => [] } ],
     [ 'Calendar/changes' => { sinceState => '0' } ],
     [ 'Calendar/set'     => {} ],

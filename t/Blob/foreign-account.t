@@ -15,7 +15,7 @@ test {
     'urn:ietf:params:jmap:core',
   );
 
-  foreign_account_ok($account, $other, [
+  foreign_account_not_found_ok($account, $other, [
     [ 'Blob/copy' => { fromAccountId => 'SELF',  accountId => 'OTHER', blobIds => [] } ],
     [ 'Blob/copy' => { fromAccountId => 'OTHER', accountId => 'SELF',  blobIds => [] } ],
   ]);

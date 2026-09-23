@@ -16,7 +16,7 @@ test {
     'urn:ietf:params:jmap:principals',
   );
 
-  foreign_account_ok($account, $other, [
+  foreign_account_not_found_ok($account, $other, [
     [ 'Principal/get'             => { ids => [] } ],
     [ 'Principal/changes'         => { sinceState => '0' } ],
     [ 'Principal/query'           => {} ],

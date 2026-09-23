@@ -16,7 +16,7 @@ test {
     'urn:ietf:params:jmap:mail',
   );
 
-  foreign_account_ok($account, $other, [
+  foreign_account_not_found_ok($account, $other, [
     [ 'Email/get'          => { ids => [] } ],
     [ 'Email/changes'      => { sinceState => '0' } ],
     [ 'Email/query'        => {} ],

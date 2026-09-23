@@ -5,7 +5,7 @@ package JMAP::TestSuite::Util;
 use Sub::Exporter -setup => [ qw(
   batch_ok
   fetch_session
-  foreign_account_ok
+  foreign_account_not_found_ok
   email
   mailbox
   calendar
@@ -61,9 +61,9 @@ sub fetch_session {
   return $data;
 }
 
-=head2 foreign_account_ok
+=head2 foreign_account_not_found_ok
 
-  foreign_account_ok($account, $other, [
+  foreign_account_not_found_ok($account, $other, [
     [ 'Foo/get'  => { ids => [] } ],
     [ 'Foo/copy' => { fromAccountId => 'SELF', accountId => 'OTHER' } ],
   ]);
@@ -80,7 +80,7 @@ C<fromAccountId> are replaced with the caller's and the foreign id, so a
 
 =cut
 
-sub foreign_account_ok {
+sub foreign_account_not_found_ok {
   my ($account, $other, $calls) = @_;
 
   local $Test::Builder::Level = $Test::Builder::Level + 1;

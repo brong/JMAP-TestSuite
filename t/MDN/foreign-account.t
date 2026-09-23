@@ -17,7 +17,7 @@ test {
     'urn:ietf:params:jmap:mdn',
   );
 
-  foreign_account_ok($account, $other, [
+  foreign_account_not_found_ok($account, $other, [
     [ 'MDN/send'  => { send => {} } ],
     [ 'MDN/parse' => { blobIds => [] } ],
   ]);

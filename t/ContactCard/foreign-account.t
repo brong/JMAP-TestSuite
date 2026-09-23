@@ -16,7 +16,7 @@ test {
     'urn:ietf:params:jmap:contacts',
   );
 
-  foreign_account_ok($account, $other, [
+  foreign_account_not_found_ok($account, $other, [
     [ 'ContactCard/get'          => { ids => [] } ],
     [ 'ContactCard/changes'      => { sinceState => '0' } ],
     [ 'ContactCard/query'        => {} ],

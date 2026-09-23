@@ -16,7 +16,7 @@ test {
     'urn:ietf:params:jmap:vacationresponse',
   );
 
-  foreign_account_ok($account, $other, [
+  foreign_account_not_found_ok($account, $other, [
     [ 'VacationResponse/get' => { ids => [] } ],
     [ 'VacationResponse/set' => {} ],
   ]);
