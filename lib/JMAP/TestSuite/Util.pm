@@ -7,6 +7,7 @@ use Sub::Exporter -setup => [ qw(
   fetch_session
   foreign_account_not_found_ok
   email
+  client_keywords
   mailbox
   calendar
   calendar_event
@@ -21,7 +22,7 @@ use Test::Deep::JType;
 use Test::More;
 use JSON ();
 
-use JMAP::TestSuite::Comparator::Email qw(email);
+use JMAP::TestSuite::Comparator::Email qw(email client_keywords);
 use JMAP::TestSuite::Comparator::Mailbox qw(mailbox);
 use JMAP::TestSuite::Comparator::Thread qw(thread);
 use JMAP::TestSuite::Comparator::Calendar qw(calendar);
