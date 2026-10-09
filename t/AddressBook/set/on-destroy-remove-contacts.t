@@ -54,6 +54,6 @@ test {
 
     my $args = $res->single_sentence("AddressBook/set")->arguments;
     ok(!$args->{notDestroyed}{ $ab->id }, 'no notDestroyed entry');
-    ok(grep { $_ eq $ab->id } @{ $args->{destroyed} // [] }, 'address book destroyed');
+    ok((grep { $_ eq $ab->id } @{ $args->{destroyed} // [] }), 'address book destroyed');
   };
 };
