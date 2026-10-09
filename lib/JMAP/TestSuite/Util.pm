@@ -232,7 +232,7 @@ sub batch_ok {
 # structure just above this:
 # https://github.com/jmapio/jmap/blob/master/spec/mail/message.mdown#emailget
 sub get_parts {
-  return (
+  my %parts = (
     A => {
       blobId      => jstr(),
       charset     => 'us-ascii', # No CT, so default charset
@@ -363,6 +363,8 @@ sub get_parts {
       type        => 'text/plain',
     },
   );
+
+  return map {; $_ => _leaf($parts{$_}) } keys %parts;
 }
 
 # For examining responses
@@ -387,7 +389,7 @@ sub multipart {
 sub part {
   my ($type) = @_;
 
-  return {
+  return _leaf({
     blobId      => jstr(),
     charset     => ignore(),
     cid         => undef,      # not provided
@@ -398,11 +400,30 @@ sub part {
     partId      => jstr(),
     size        => jnum(),
     type        => $type,
-  };
+  });
 }
 
 sub parts {
   map { part($_) } @_;
+}
+
+# RFC 8621 S4.1.4: subParts is "EmailBodyPart[]|null" and only meaningful for
+# multipart/*, so a leaf may omit it or give null or [].
+sub _leaf {
+  my ($expect) = @_;
+
+  return code(sub {
+    my ($got) = @_;
+    return (0, "not an EmailBodyPart object") unless ref $got eq 'HASH';
+
+    my %got = %$got;
+    my $sub_parts = delete $got{subParts};
+    return (0, "leaf part has non-empty subParts")
+      if defined $sub_parts && ! (ref $sub_parts eq 'ARRAY' && ! @$sub_parts);
+
+    my ($ok, $stack) = Test::Deep::cmp_details(\%got, $expect);
+    return $ok || (0, Test::Deep::deep_diag($stack));
+  });
 }
 
 # For creating requests
