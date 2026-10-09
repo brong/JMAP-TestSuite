@@ -68,9 +68,11 @@ sub calendar_event {
     }
   }
 
+  # jscalendarbis S1.7.4: implementations "MUST preserve" unknown properties.
   return hashrec({
     required => \%required,
     optional => \%optional,
+    allow_unknown => 1,
   });
 }
 
