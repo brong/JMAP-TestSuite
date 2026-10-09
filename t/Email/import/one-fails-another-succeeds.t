@@ -97,7 +97,7 @@ test {
           value => "This one worked ($$)",
         }),
       }),
-      receivedAt => re('\A\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\dZ\z'),
+      receivedAt => re('\A\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d*[1-9])?Z\z'),
     }),
     'email looks good',
   );
