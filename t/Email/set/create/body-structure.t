@@ -41,12 +41,12 @@ test {
     ],
     superhashof({
       created => {
-        new => {
+        new => superhashof({
           id       => jstr(),
           size     => jnum(),
           blobId   => jstr(),
           threadId => jstr(),
-        },
+        }),
       },
     }),
     "textBody create"
