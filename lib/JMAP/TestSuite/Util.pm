@@ -6,6 +6,7 @@ use Sub::Exporter -setup => [ qw(
   batch_ok
   fetch_session
   foreign_account_not_found_ok
+  invalid_properties
   email
   mailbox
   calendar
@@ -157,6 +158,40 @@ sub foreign_account_not_found_ok {
       "$desc: $want",
     ) or diag explain $res->as_stripped_triples;
   }
+}
+
+=head2 invalid_properties
+
+  jcmp_deeply($err, invalid_properties(qw(mailboxIds keywords)));
+
+A comparator for an C<invalidProperties> SetError.  RFC 8620 section 5.3 says
+the error "SHOULD also have a property called C<properties>" listing the
+invalid ones, so it may be absent; when present it must name each given
+property, as itself, as a path inside it (C<myRights/mayDelete> for
+C<myRights>), or as a path containing it.  Order and extra entries do not
+matter.
+
+=cut
+
+sub invalid_properties {
+  my @want = @_;
+
+  return code(sub {
+    my ($err) = @_;
+    return (0, "not a SetError object") unless ref $err eq 'HASH';
+    my $type = $err->{type} // 'undef';
+    return (0, "type is $type, not invalidProperties") unless $type eq 'invalidProperties';
+
+    my $got = $err->{properties};
+    return 1 unless defined $got;
+    return (0, "properties is not an array") unless ref $got eq 'ARRAY';
+
+    for my $w (@want) {
+      next if grep {; $_ eq $w || index($_, "$w/") == 0 || index($w, "$_/") == 0 } @$got;
+      return (0, "properties [@$got] does not name $w");
+    }
+    return 1;
+  });
 }
 
 sub batch_ok {
