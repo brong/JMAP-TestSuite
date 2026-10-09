@@ -71,7 +71,9 @@ sub fetch_session {
 Asserts that every listed call, made as C<$account> but naming C<$other>'s
 accountId, fails with C<accountNotFound> (RFC 8620 section 3.6.2).  C<$other> exists
 on the server but is outside C<$account>'s session, and must be reported the
-same way as an id that does not exist at all.
+same way as an id that does not exist at all.  A /copy whose C<fromAccountId>
+is the foreign one must fail with C<fromAccountNotFound> instead (sections 5.4
+and 6.3).
 
 Each call is C<[ $method, \%args ]>.  C<accountId> is set to the foreign id
 unless given.  The strings C<'SELF'> and C<'OTHER'> in C<accountId> or
@@ -146,10 +148,13 @@ sub foreign_account_not_found_ok {
       }
     }
 
+    my $want = ($args{fromAccountId} // '') eq $foreign && $args{accountId} ne $foreign
+             ? 'fromAccountNotFound'
+             : 'accountNotFound';
     jcmp_deeply(
       $s->arguments,
-      superhashof({ type => 'accountNotFound' }),
-      "$desc: accountNotFound",
+      superhashof({ type => $want }),
+      "$desc: $want",
     ) or diag explain $res->as_stripped_triples;
   }
 }
