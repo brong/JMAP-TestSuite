@@ -3,6 +3,7 @@ use Moose;
 
 use Test::Deep ':v1';
 use Test::Deep::JType;
+use Test::Deep::HashRec;
 
 use Sub::Exporter -setup => [ qw(email) ];
 
